@@ -83,7 +83,7 @@ void insert(char *str){
         p = son[p][u];
     }
     cnt[p]++;
-}```
+}
 
 //查找操作
 int query(char *str){

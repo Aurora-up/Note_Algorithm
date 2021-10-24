@@ -535,7 +535,7 @@ int main(){
 
 1[**食物链**]:https://www.acwing.com/problem/content/242/
 
-<img src="F:image/acw_240.png" style="zoom:50%;" />
+<img src="image/acw_240.png" style="zoom:50%;" />
 
 ```c++
 //  acw 240

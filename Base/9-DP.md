@@ -188,7 +188,7 @@ eg:  f[i - 1] 这种使用下标从 1 开始就不会出现越界问题。
 
 ![](image/NumTriAngle.png)
 
-![](image/XianXingDP.png)
+![](image/XianXingDp.png)
 
 ```
            f[1][1]

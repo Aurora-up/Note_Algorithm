@@ -662,3 +662,106 @@ int main()
 }
 ```
 
+#### 计数类 DP
+
+##### 900:整数划分
+
+https://www.acwing.com/problem/content/902/
+
+```
+
+
+```
+
+```
+
+```
+
+
+
+
+
+#### 数位统计 DP
+
+![](image/SWDp.png)
+
+##### 338:计数问题
+
+https://www.acwing.com/problem/content/340/
+
+**重点是 分情况讨论 ！**
+
+```
+[a , b]  0 ~ 9
+ 
+实现一个函数 count(n , x)   统计 1 ~ n 中 x 出现的次数
+
+然后通过 “前缀和”思想 求某个区间中  x 出现的次数
+count(b ,x) - count(a - 1 , x )   统计 (a, b)中 x 出现的次数。
+
+```
+
+![](image/ShuWeiTongJiDp.png)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

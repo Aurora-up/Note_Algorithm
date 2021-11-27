@@ -217,10 +217,8 @@ int main()
         dfs(cnt);
         puts(str);
     }
-    
     return 0;
 }
-
 ```
 
 
@@ -230,7 +228,132 @@ int main()
 https://www.acwing.com/problem/content/169/
 
 ```
+剪枝：
+	1：木棍的 长度一定是 sum 的约数
+	2：优化搜索顺序，从小到大枚举
+	3：排除等效冗余，按照 组合数 的方式枚举。
+				  如果当前木棍加到当前棒中，失败了，则直接略过后面所有长度相等的木棍。
+				  如果是 木棒的第一根木棍失败了，则当前方案一定失败，直接回溯。
+				  如果是 木棒的最后一根木棍失败了，则当前方案一定失败，直接回溯。
+```
 
+```
+dfs 的参数：
+	因为未知木棍的长度 len ，所以需要对len从小到大开始枚举。所以每一次搜索要面对的状态有：
+    1：已经拼好的原始大木棒的根数
+    2：正在拼的原始大木棒的当前长度
+    3：每根小木棍的使用情况。
+  在每个状态中，我们 从尚未使用的小木棍中选择一个，尝试拼到原始大木棒中。然后不断向新的状态
+  递归。递归的边界就是 sum / len 数
+```
+
+```
+1： 剪枝优化：
+	①： 大木棒的长度一定和木棒的总长是倍数关系。 sum % len == 0
+			因为每一组当中每个大木棒的长度都相等。
+	②： 优化搜索顺序： 将小木棍从大到小进行排序，优先尝试较长的 小木棍。
+	③： 排除等效冗余：
+		1：可以限制先后加入的一根原始大木棒的小木棍长度是 递减的。
+			因为 对于已经拼好的部分，其中木棒的顺序无所谓，我们需要的是 组合数，
+			不是排列数。
+		2：对于原始木棒，记录最近一次尝试拼接的木棍长度，如果分支搜索失败回溯，不再尝试
+		向该木棒拼接其他 相同长度的木棒，（必定会失败）
+		3：如果在 当前的原始大木棒中“尝试拼接的第一根小木棍”的递归分支失败，那么直接判定
+		当前分支失败，直接回溯。
+			因为在拼入这些小木棍之前，面对的原始 大木棒都是 空的,（还未向其中拼接木棍）
+			这些木棒是等效的。小木棍拼在当前大木棒中失败，那么拼到其他的木棒中，也一定会
+			失败。
+			
+```
+
+![](image/MuBangJZ.png)
+
+```
+		4：如果在 原始大木棒中拼入一根小木棍之后，大木棒恰好拼接完整，并且“ 接下来拼接
+		剩余原始大木棒”的递归分支返回失败，那么直接判定当前分支失败，直接回溯。
+			因为：贪心：再用 1 根小木棍恰好拼完当前原始木棒 必然 比 再用若干根木棍拼接好
+				当前原始大木棒 更好。
+```
+
+![](image/MuBangJZ2.png)
+
+```
+利用 同一木棒上木棍顺序的等效性， 等长木棒的等效性 ， 空木棒的等效性， 和 贪心 剪枝
+```
+
+```c++
+#include<iostream>
+#include<cstring>
+#include<algorithm>
+using namespace std;
+const int N = 70;
+
+int n;
+int w[N], sum, length; 
+bool st[N];  //  标记数组
+
+// u是已经拼好的原始大木棒根数 ， cur 是正在拼的原始大木棒的当前长度，
+// start 是木棍的使用情况
+//   正在拼第 u 根原始大木棒。已经拼好 u - 1根
+//   第 u 根木棒的当前长度为 cur
+//   拼接到第 u 根木棒中上的一根 小木棍的下标为 start
+bool dfs(int u, int cur ,int start)
+{
+    if(u * length == sum) return true;
+    if(cur == length) return  dfs(u + 1, 0 ,1);
+    
+    for(int i = start ; i < n ; i++)
+    {
+        //  用过 或者 加上后大于当前使用的 len
+        if(st[i] || cur + w[i] > length) continue;
+        
+        st[i] =  true;
+        if(dfs(u, cur + w[i], i + 1)) return true;
+        st[i] = false;
+        
+        //  当前小木棍是该木棒的第一根或最后一根 并未成功的话，直接剪掉
+        if(!cur || cur + w[i] == length) return false;
+        
+        // 因为已经排好序，所以所有的长度相等的排在一起，这些等效，加一个直接跳过其他的
+        int j = i;
+        while(j < n && w[i] == w[j]) j++;
+        i = j - 1;  
+        
+    }
+    return false;
+}
+
+int main()
+{
+    while(cin >> n , n)
+    {
+        memset(st, 0 ,sizeof st);
+        sum = 0;
+        
+        for(int i = 0 ; i < n ; i++)
+        {
+            cin >> w[i];
+            sum += w[i];
+        }
+        
+        // sort(w, w + n, greater<int>())
+        sort(w,  w + n);
+        reverse(w, w + n);
+        
+        length = 1;
+        while(true)
+        {
+            if(sum % length == 0 && dfs(0,0,0))
+            {
+                cout << length << endl;
+                break;
+            }
+            length++;
+        }
+        
+    }
+    return 0;
+}
 
 ```
 
@@ -241,6 +364,7 @@ https://www.acwing.com/problem/content/169/
 https://www.acwing.com/activity/content/problem/content/1488/
 
 ```
+
 
 
 ```

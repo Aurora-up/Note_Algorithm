@@ -2,7 +2,9 @@
 
 
 
-### STL   简介
+## STL   简介
+
+### 方法速览
 
 #### vector
 
@@ -13,6 +15,7 @@ vector, 变长数组，倍增的思想
     clear()  清空
     front()/back()
     push_back()/pop_back()
+    emplace_back()    // 高效率
     begin()/end()
     []
     支持比较运算，按字典序
@@ -327,9 +330,22 @@ lower_bound(first , last , val , comp)
 upper_bound(first , last ,val, comp)
 
 
+//  排序
 sort(first , last , 仿函数 / 自定义比较函数)
 //  greater<T>   
 
+//  翻转， 传的参数是迭代器。
+reverser(first, last)
+    
+//  去重， 
+unique(first , last)
+/*
+会将数组中的重复元素全部移到到数组的最后面，并且返回重复元素部分的 begin()
+*/
+// 把一个  vector 去重
+vector<int> a;
+unique(a.begin() , a.end());
+int m = unique(a.begin(), a.end()) - a.begin();  // m 表示az
 
 ```
 
@@ -571,19 +587,290 @@ int main(){
 
 
 
+## 详解
+
+### c++ 无序容器
+
+又称哈希容器。
+
+底层使用 哈希表，相比 红黑树 更快。
+
+| 无序容器           | 功能                                                         |
+| ------------------ | ------------------------------------------------------------ |
+| unordered_map      | 存储键值对 <key, value> 类型的元素，其中各个键值对键的值不允许重复，且该容器中存储的键值对是无序的。 |
+| unordered_multimap | 和 unordered_map 唯一的区别在于，该容器允许存储多个键相同的键值对。 |
+| unordered_set      | 不再以键值对的形式存储数据，而是直接存储数据元素本身（当然也可以理解为，该容器存储的全部都是键 key 和值 value 相等的键值对，正因为它们相等，因此只存储 value 即可）。另外，该容器存储的元素不能重复，且容器内部存储的元素也是无序的。 |
+| unordered_multiset | 和 unordered_set 唯一的区别在于，该容器允许存储值相同的元素。 |
+
+#### unordered_map
+
+```c++
+// 模板参数
+template < class Key,                        //键值对中键的类型
+           class T,                          //键值对中值的类型
+           class Hash = hash<Key>,           //容器内部存储键值对所用的哈希函数
+           class Pred = equal_to<Key>,       //判断各个键值对键相同的规则
+           class Alloc = allocator< pair<const Key,T> >  // 指定分配器对象的类型
+           > class unordered_map;
+
+```
+
+| 参数                 | 含义                                                         |
+| -------------------- | ------------------------------------------------------------ |
+| <key,T>              | 前 2 个参数分别用于确定键值对中键和值的类型，也就是存储键值对的类型。 |
+| Hash = hash<Key>     | 用于指明容器在存储各个键值对时要使用的哈希函数，默认使用 STL 标准库提供的 hash<key> 哈希函数。注意，默认哈希函数只适用于基本数据类型（包括 string 类型），而不适用于自定义的结构体或者类。 |
+| Pred = equal_to<Key> | 要知道，unordered_map 容器中存储的各个键值对的**键是不能相等的**，而判断是否相等的规则，就由此参数指定。默认情况下，使用 STL 标准库中提供的 equal_to<key> 规则，该规则仅支持可直接用 == 运算符做比较的数据类型。 |
+
+**方法**
+
+| 成员方法           | 功能                                                         |
+| ------------------ | ------------------------------------------------------------ |
+| begin()            | 返回指向容器中第一个键值对的正向迭代器。                     |
+| end()              | 返回指向容器中最后一个键值对之后位置的正向迭代器。           |
+| cbegin()           | 和 begin() 功能相同，只不过在其基础上增加了 const 属性，即该方法返回的迭代器不能用于修改容器内存储的键值对。 |
+| cend()             | 和 end() 功能相同，只不过在其基础上，增加了 const 属性，即该方法返回的迭代器不能用于修改容器内存储的键值对。 |
+| **empty()**        | 若容器为空，则返回 true；否则 false。                        |
+| **size()**         | 返回当前容器中存有键值对的个数。                             |
+| max_size()         | 返回容器所能容纳键值对的最大个数，不同的操作系统，其返回值亦不相同。 |
+| operator[key]      | 该模板类中重载了 [] 运算符，其功能是可以向访问数组中元素那样，只要给定某个键值对的键 key，就可以获取该键对应的值。注意，如果当前容器中没有以 key 为键的键值对，则其会使用该键向当前容器中插入一个新键值对。 |
+| at(key)            | 返回容器中存储的键 key 对应的值，如果 key 不存在，则会抛出 out_of_range 异常。 |
+| **find(key)**      | 查找以 key 为键的键值对，如果找到，则返回一个指向该键值对的正向迭代器；反之，则返回一个指向容器中最后一个键值对之后位置的迭代器（如果 end() 方法返回的迭代器）。 |
+| **count(key)**     | 在容器中查找以 key 键的键值对的个数。                        |
+| equal_range(key)   | 返回一个 pair 对象，其包含 2 个迭代器，用于表明当前容器中键为 key 的键值对所在的范围。 |
+| **emplace()**      | 向容器中添加新键值对，效率比 insert() 方法高。               |
+| emplace_hint()     | 向容器中添加新键值对，效率比 insert() 方法高。               |
+| **insert()**       | 向容器中添加新键值对。                                       |
+| **erase()**        | 删除指定键值对。                                             |
+| **clear()**        | 清空容器，即删除容器中存储的所有键值对。                     |
+| swap()             | 交换 2 个 unordered_map 容器存储的键值对，前提是必须保证这 2 个容器的类型完全相等。 |
+| bucket_count()     | 返回当前容器底层存储键值对时，使用桶（一个线性链表代表一个桶）的数量。 |
+| max_bucket_count() | 返回当前系统中，unordered_map 容器底层最多可以使用多少桶。   |
+| bucket_size(n)     | 返回第 n 个桶中存储键值对的数量。                            |
+| bucket(key)        | 返回以 key 为键的键值对所在桶的编号。                        |
+| load_factor()      | 返回 unordered_map 容器中当前的负载因子。负载因子，指的是的当前容器中存储键值对的数量（size()）和使用桶数（bucket_count()）的比值，即 load_factor() = size() / bucket_count()。 |
+| max_load_factor()  | 返回或者设置当前 unordered_map 容器的负载因子。              |
+| rehash(n)          | 将当前容器底层使用桶的数量设置为 n。                         |
+| reserve()          | 将存储桶的数量（也就是 bucket_count() 方法的返回值）设置为至少容纳count个元（不超过最大负载因子）所需的数量，并重新整理容器。 |
+| hash_function()    | 返回当前容器使用的哈希函数对象。                             |
+
+#### unordered_map 的一些常用操作和注意事项
+
+```c++
+//     1：定义：
+unordered_map<int,int> mp;
+
+ //    2：元素插入：  key 值不可重复 ,
+使用 [] 
+    mp[10] = 1;
+    mp[10] = 2;       //  会覆盖  mp[10] = 1;
+    
+使用  emplace() 不能在 已有的 key 下插入 value
+	mp.emplace(10,3)      //  不能覆盖 mp[10] = 2
+	
+使用  insert()   不能在 已有的 key 下插入 value
+	mp.insert({10 ,4})    //  不能覆盖 mp[10] = 2
+
+//     3：元素迭代：
+
+for(auto [k , v] : mp)
+	cout << k << " : " << v << endl; 
+
+for(auto i = mp.begin() ; i != mp.end() ; i++)
+	cout << (*i).first << " : " << (*i).second << endl;
+	// cout << i -> first << " : " << i -> second << endl;
+ 
+//     4： 元素清空 : 清空所有元素
+mp.clear();
+
+
+//     5： 判断容器是否为 空  , 不空 返回 0
+cout << mp.empty();
+
+
+//     6： 查找元素 按 "键" 查找,  返回的是 迭代器指针
+unordered_map<int,int>::iterator x = mp.find(1) 
+//  auto x = mp.find(1);
+cout << x -> first << " : " << x -> second;
+
+
+//     7:  元素删除
+mp.earse(mp.begin());   //  删除 当前迭代器指针的键值对
+mp.earse(1);            //  删除 以 1 作为 键的 键值对
+mp.earse(mp.begin(), mp.end());  // 删除迭代器之间的所有元素
+```
+
+```c++
+#include<iostream>
+#include<unordered_map>
+using namespace std;
+int main()
+{
+    unordered_map<int,string> mp;
+    
+    // 元素插入
+    mp[1] = "houdong";
+    mp[2] = "hou";
+    mp[3] = "hu";
+    
+    // 无法覆盖
+    mp.insert({1 , "h"});
+    mp.emplace(1 , "h");
+    
+    // 普通插入
+    mp.insert({4, "ho"});
+    mp.emplace(5 , "hod");
+    
+   	// 元素遍历
+    for(auto [k , v] : mp)
+        cout << k << " : " << v;
+    
+    // 元素查找
+    auto x = mp.find(1);
+    cout << (*x).first << " : " << (*x).second << endl;
+    
+    return 0;
+}
+```
+
+#### unordered_multimap
+
+与 unordered_map 唯一的不同是  **可以存储多个键相等的键值对**
+
+```
+所在头文件
+#include<unordered_map>
+```
+
+```c++
+需要自定义 哈希函数 和 比较函数
+```
+
+#### unordered_set
+
+1. 不再以键值对的形式存储数据，而是直接存储数据的值；
+2. 容器内部存储的各个元素的值都互不相等，且不能被修改。
+
+```c++
+#include<iostream>
+#include<unordered_set>
+using namespace std;
+
+int main()
+{
+	unordered_set<string> mset;
+    
+    
+    return 0;
+}
+```
+
+#### unordered_multiset
+
+```
+
+```
 
 
 
+### c++序列式容器
+
+![](image/RongQi.jpg)
+
+- array<T,N>（数组容器）：表示可以存储 N 个 T 类型的元素，是 [C++](http://c.biancheng.net/cplus/) 本身提供的一种容器。此类容器一旦建立，其长度就是固定不变的，这意味着不能增加或删除元素，只能改变某个元素的值；
+- vector<T>（向量容器）：用来存放 T 类型的元素，是一个长度可变的序列容器，即在存储空间不足时，会自动申请更多的内存。使用此容器，在尾部增加或删除元素的效率最高（时间复杂度为 O(1) 常数阶），在其它位置插入或删除元素效率较差（时间复杂度为 O(n) 线性阶，其中 n 为容器中元素的个数）；
+- deque<T>（双端队列容器）：和 vector 非常相似，区别在于使用该容器不仅尾部插入和删除元素高效，在头部插入或删除元素也同样高效，时间复杂度都是 O(1) 常数阶，但是在容器中某一位置处插入或删除元素，时间复杂度为 O(n) 线性阶；
+- list<T>（链表容器）：是一个长度可变的、由 T 类型元素组成的序列，它以双向链表的形式组织元素，在这个序列的任何地方都可以高效地增加或删除元素（时间复杂度都为常数阶 O(1)），但访问容器中任意元素的速度要比前三种容器慢，这是因为 list<T> 必须从第一个元素或最后一个元素开始访问，需要沿着链表移动，直到到达想要的元素。
+- forward_list<T>（正向链表容器）：和 list 容器非常类似，只不过它以单链表的形式组织元素，它内部的元素只能从第一个元素开始访问，是一类比链表容器快、更节省内存的容器。
+
+注意，其实除此之外，stack<T> 和 queue<T> 本质上也属于序列容器，只不过它们都是在 deque 容器的基础上改头换面而成，通常更习惯称它们为容器适配器。
 
 
 
+ **array、vector 和 deque 容器的函数成员**
 
+| 函数成员         | 函数功能                                                     |
+| ---------------- | ------------------------------------------------------------ |
+| begin()          | 返回指向容器中第一个元素的迭代器。                           |
+| end()            | 返回指向容器最后一个元素所在位置后一个位置的迭代器，通常和 begin() 结合使用。 |
+| rbegin()         | 返回指向最后一个元素的迭代器。                               |
+| rend()           | 返回指向第一个元素所在位置前一个位置的迭代器。               |
+| cbegin()         | 和 begin() 功能相同，只不过在其基础上，增加了 const 属性，不能用于修改元素。 |
+| cend()           | 和 end() 功能相同，只不过在其基础上，增加了 const 属性，不能用于修改元素。 |
+| crbegin()        | 和 rbegin() 功能相同，只不过在其基础上，增加了 const 属性，不能用于修改元素。 |
+| crend()          | 和 rend() 功能相同，只不过在其基础上，增加了 const 属性，不能用于修改元素。 |
+| assign()         | 用新元素替换原有内容。                                       |
+| operator=()      | 复制同类型容器的元素，或者用初始化列表替换现有内容。         |
+| size()           | 返回实际元素个数。                                           |
+| max_size()       | 返回元素个数的最大值。这通常是一个很大的值，一般是 232-1，所以我们很少会用到这个函数。 |
+| capacity()       | 返回当前容量。                                               |
+| empty()          | 判断容器中是否有元素，若无元素，则返回 true；反之，返回 false。 |
+| resize()         | 改变实际元素的个数。                                         |
+| shrink _to_fit() | 将内存减少到等于当前元素实际所使用的大小。                   |
+| front()          | 返回第一个元素的引用。                                       |
+| back()           | 返回最后一个元素的引用。                                     |
+| operator[]()     | 使用索引访问元素。                                           |
+| at()             | 使用经过边界检査的索引访问元素。                             |
+| push_back()      | 在序列的尾部添加一个元素。                                   |
+| insert()         | 在指定的位置插入一个或多个元素。                             |
+| emplace()        | 在指定的位置直接生成一个元素。                               |
+| emplace_back()   | 在序列尾部生成一个元素。                                     |
+| pop_back()       | 移出序列尾部的元素。                                         |
+| erase()          | 移出一个元素或一段元素。                                     |
+| clear()          | 移出所有的元素，容器大小变为 0。                             |
+| swap()           | 交换两个容器的所有元素。                                     |
+| data()           | 返回指向容器中第一个元素的指针。                             |
+
+list 和 forward_list 容器彼此非常相似，forward_list 中包含了 list 的大部分成员函数，而未包含那些需要反向遍历的函数。表 3 展示了 list 和 forward_list 的函数成员。
+
+**list 和 forward_list 的函数成员**
+
+| 函数成员        | 函数功能                                                     |
+| --------------- | ------------------------------------------------------------ |
+| begin()         | 返回指向容器中第一个元素的迭代器。                           |
+| end()           | 返回指向容器最后一个元素所在位置后一个位置的迭代器。         |
+| rbegin()        | 返回指向最后一个元素的迭代器。                               |
+| rend()          | 返回指向第一个元素所在位置前一个位置的迭代器。               |
+| cbegin()        | 和 begin() 功能相同，只不过在其基础上，增加了 const 属性，不能用于修改元素。 |
+| before_begin()  | 返回指向第一个元素前一个位置的迭代器。                       |
+| cbefore_begin() | 和 before_begin() 功能相同，只不过在其基础上，增加了 const 属性，即不能用该指针修改元素的值。 |
+| cend()          | 和 end() 功能相同，只不过在其基础上，增加了 const 属性，不能用于修改元素。 |
+| crbegin()       | 和 rbegin() 功能相同，只不过在其基础上，增加了 const 属性，不能用于修改元素。 |
+| crend()         | 和 rend() 功能相同，只不过在其基础上，增加了 const 属性，不能用于修改元素。 |
+| assign()        | 用新元素替换原有内容。                                       |
+| operator=()     | 复制同类型容器的元素，或者用初始化列表替换现有内容。         |
+| size()          | 返回实际元素个数。                                           |
+| max_size()      | 返回元素个数的最大值，这通常是一个很大的值，一般是 232-1，所以我们很少会用到这个函数。 |
+| resize()        | 改变实际元素的个数。                                         |
+| empty()         | 判断容器中是否有元素，若无元素，则返回 true；反之，返回 false。 |
+| front()         | 返回容器中第一个元素的引用。                                 |
+| back()          | 返回容器中最后一个元素的引用。                               |
+| push_back()     | 在序列的尾部添加一个元素。                                   |
+| push_front()    | 在序列的起始位置添加一个元素。                               |
+| emplace()       | 在指定位置直接生成一个元素。                                 |
+| emplace_after() | 在指定位置的后面直接生成一个元素。                           |
+| emplace_back()  | 在序列尾部生成一个元素。                                     |
+| cmplacc_front() | 在序列的起始位生成一个元素。                                 |
+| insert()        | 在指定的位置插入一个或多个元素。                             |
+| insert_after()  | 在指定位置的后面插入一个或多个元素。                         |
+| pop_back()      | 移除序列尾部的元素。                                         |
+| pop_front()     | 移除序列头部的元素。                                         |
+| reverse()       | 反转容器中某一段的元素。                                     |
+| erase()         | 移除指定位置的一个元素或一段元素。                           |
+| erase_after()   | 移除指定位置后面的一个元素或一段元素。                       |
+| remove()        | 移除所有和参数匹配的元素。                                   |
+| remove_if()     | 移除满足一元函数条件的所有元素。                             |
+| unique()        | 移除所有连续重复的元素。                                     |
+| clear()         | 移除所有的元素，容器大小变为 0。                             |
+| swap()          | 交换两个容器的所有元素。                                     |
+| sort()          | 对元素进行排序。                                             |
+| merge()         | 合并两个有序容器。                                           |
+| splice()        | 移动指定位置前面的所有元素到另一个同类型的 list 中。         |
+| splice_after()  | 移动指定位置后面的所有元素到另一个同类型的 list 中。         |
 
 
 
 ```c++
 //   vector
-
 #include<iostream>
 #include<cstring>
 #include<cstdio>
@@ -636,7 +923,8 @@ int main(){
     for(int i=0;i<a2.size();i++) cout<<a2[i]<<' ';
 
     // iterator 迭代器
-    for(vector<int>::iterator i = a2.begin() ;i != a2.end() ; i++) cout<<*i<<' ';
+    for(vector<int>::iterator i = a2.begin() ;i != a2.end() ; i++) 		
+        cout<<*i<<' ';
 
     for(auto i = a2.begin() ;i != a2.end() ; i++) cout<<*i<<' ';
 

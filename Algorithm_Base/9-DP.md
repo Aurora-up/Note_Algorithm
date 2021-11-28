@@ -2,18 +2,95 @@
 
 ### 背包问题
 
-####  0 ，1 背包
+一类特殊的线性 DP问题。
+
+####  01 背包
+
+0，1背包模型：  (**每件物品仅用一次**)
+
+给定 $N$ 个物品，其中第  $i$ 个物品的体积为 $V_i$ ,价值为 $W_i$ 。有一容积为  $M$ 的背包，要求选择一些物品放入背包，使得物品总体积不超过 $M$ 的前提下，物品的总价值和**最大**。
+
+依次考虑每个物品是否放入背包。
+
+用 “**已经处理的物品数**”作为 DP 的  “ **阶段** ”， 以  “ **背包中已经放入的物品总体积** ”  作为附加维度 。
+
+ 
+
+$F[i,j]$ 表示从前 $i$  个物品中选出总体积为 $j$ 的物品放入背包，物品的最大价值和。
+
+![](image/01_back.png)
+
+通过 DP 状态转移方程, 每一阶段 $i$ 的状态只与上一阶段  $i-1$ 的状态有关 。使用 “滚动数组”的进行优化，降低空间开销。
+
+```c++
+int f[2][MAX_M+1];
+memset(f, 0xcf, sizeof f);
+f[0][0] = 0;
+
+for(int i = 1 ; i <= n ; i++)
+    for(int j = 0 ;  j <= m ; j++)
+        f[i & 1][j] = f[(i-1) & 1][j];
+	for(int j = v[i] ; j <= m ; j++)
+        f[i & 1][j] = max(f[i & 1][j] , f[(i-1) & 1][j - v[i] + w[i]]);
+
+
+int ans = 0;
+for(int j = 0 ; j <= m ; j++)
+    ans = max(ans, f[n & 1][j]);
+```
+
+在上面程序中，将阶段 $i$ 的状态存储在第一维下标为  $i$ & $1$ 的二维数组中，当  $i$  为奇数 时， $i$ & $1$ 
+
+等于 1；当 $i$ 为偶数时，  $i$ & $1$  等于 0 。因此，DP 的状态就相当于在 $F[0][ ]$ 和  $F[1][]$  两个数组中
+
+交替转移，空间复杂度从 $O(MN)$ 变成 $o(M)$ 。
+
+分析上面代码，可以看到，在每个阶段开始时，实际上执行了一次从 $F[i-1][]$ 到 $F[i][]$ 的拷贝
+
+操作，这提示我们可以进一步省去 $F$ 数组的第一位，只用一维数组。
+
+**当外层循环到第 $i$ 个物品的时候， $F[j]$ 表示背包中放入总体积为 $j$ 的物品最大价值和。**
+
+```c++
+int f[MAX_M+1];
+memset(f, 0xcf, sizeof f); // -INF
+f[0] = 0;
+for(int i = 1 ; i <= n ; i++)
+    for(int j = m ; j >= v[i] ; j--)
+      	f[j] = max(f[j], f[j - v[i]] + w[i]);
+
+int ans = 0;
+for(int j = 0 ; j <= m ; j ++)
+    ans = max(ans, f[j]);
+```
+
+对 $j$ 倒序循环。循环到 $j$  时：
+
+1：$F$ 数组的后半部分 $F[j \sim M]$ 处于 “第 $i$ 个阶段”，也就是已经考虑过放入 第 $i$  个物品的情况。
+
+2：前半部分 $F[0\sim j-1]$ 处于 “第 $i-1$ 个阶段”，也就是还没有第 $i$ 个物品的更新。
+
+接下来 $j$ 不断减小，意味着我们总用 “第 $i-1$ 个阶段”的状态向 “第 $i$ 个阶段” 的状态进行转移，符合线性 DP 的原则，进而保证第 $i$  个物品只会被放入背包。一次。如下图：
+
+![](image/01_bag.png)
+
+
+
+#### 2 ：01背包问题
 
 https://www.acwing.com/problem/content/2/
 
 ```
+背包的容量有限。每件物品只能放进背包一次。
+
 特点：每件物品最多只能用一次； (使用次数 <= 1 )
 ```
 
 ![](image/DP_01backpack.png)
 
+$f[i][j]$  就表示从**前 $i$ 个物品**中选择出可以装进背包的选法集合价值的  **最大值**
+
 ```c++
-// acw 2
 #include<iostream>
 #include<algorithm>
 using namespace std;
@@ -45,11 +122,65 @@ j , j - v[i]  <= j;
 int f[N];
 // 一维
 for(int i = 1 ; i <= n ; i++){ 
-    for(int j = m ; j >= v[i] ; j--){
+    for(int j = m ; j >= v[i] ; j--){  
         f[j] = max(f[j],f[j - v[i]] + w[i])     
     }
 }
+
+//  优化时注意的问题：
+for(int i = 1 ; i <= n ; i++)
+    for(int j = v[i] ; j <= m ; j++)
+    {
+        //  f[i]  是由 f[i-1] 转换过来的。  
+		f[i-1][j] = f[i-1][j]; 
+        // f[j] = f[j];
+        
+        // 由于 j 是从小到达枚举的 ，j - v[i] < j ，所以 f[j - v[i]] 已经被算过，
+        // 那么这维状态就是不包含 i 的 f[i][j - v[i]] 状态。那么这就矛盾了
+        // 将 j 倒序进行即可。
+		f[i][j] = max(f[i-1][j],f[i][j - v[i]] + w[i]);
+// f[i] = max(f[j], f[j - v[i]] + w[i]); == f[i] = max(f[i][j], f[i][j - v[i]] + w[i]);
+        
+    }		
+
 ```
+
+#### 278：数字组合
+
+https://www.acwing.com/problem/content/280/
+
+```
+N 个正整数就是 N 个物品，M 就是背包的容积。
+在外层循环到 i 的时候（表示从 前 i 个数中选），设 F[j] 表示 “和为 j” 有多少种方案。
+```
+
+```c++
+#include<iostream>
+#include<cstring>
+using namespace std;
+const int N = 10010;
+int n ,m;
+int f[N];
+int a[N];
+
+int main()
+{
+    cin >> n >> m;
+    for(int i = 1 ; i <= n ; i++) scanf("%d", &a[i]);
+    
+    memset(f, 0 , sizeof f);
+    f[0] = 1;
+    for(int i = 1 ; i <= n ; i++)
+        for(int j = m ;  j >= a[i] ; j--)
+            f[j] += f[j - a[i]];
+   
+   	cout << f[m] << endl;
+    
+    return 0;
+}
+```
+
+
 
 #### 完全背包
 
@@ -669,15 +800,47 @@ int main()
 https://www.acwing.com/problem/content/902/
 
 ```
+完全背包做法：
+	n 是背包的容量， 物品的体积是 1 ~ n， 每种物品有无限个。
+	求解的是恰好装满背包的方案数。
+```
 
+```c++
+#include<iostream>
+#include<algorithm>
+using namespace std;
 
+const int N = 1010 , mod = 1e9 + 7;
+
+int n;
+int f[N];
+
+int main()
+{
+    cin >> n;
+    
+    f[0] = 1;
+    for(int i = 1 ; i <= n ; i++)
+        for(int j = i ; j <= n ; j++)
+            f[j] = (f[j] + f[j - i]) % mod;
+            
+    cout << f[n] << endl;
+    return 0;
+}
 ```
 
 ```
+计数 DP写法：
 
 ```
 
 
+
+```c++
+ 
+
+
+```
 
 
 

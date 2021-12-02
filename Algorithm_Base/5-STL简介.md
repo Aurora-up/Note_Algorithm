@@ -15,7 +15,7 @@ vector, 变长数组，倍增的思想
     clear()  清空
     front()/back()
     push_back()/pop_back()
-    emplace_back()    // 高效率
+    emplace_back()      // 高效率
     begin()/end()
     []
     支持比较运算，按字典序
@@ -41,6 +41,7 @@ string，字符串
     clear()
     substr(起始下标，(子串长度))  返回子串
     c_str()  返回字符串所在字符数组的起始地址
+    to_string() 将 其他基本数据类型转换为 string 类型
 
 构造函数：
         string s(char * a);    // 将字符数组转换为字符串， 
@@ -53,6 +54,8 @@ string，字符串
             
     //把当前串中以pos开始的n个字符拷贝到以s为起始位置的字符数组中，返回实际拷贝的数目
     int copy(char *s, int n ,int pos) 
+    
+    
 ```
 
 #### queue
@@ -181,7 +184,6 @@ bitset, 圧位
 
 ```
 C语言使用函数指针和回调函数来实现仿函数，例如一个用来排序的函数可以这样使用仿函数
-
 
 ```
 
@@ -543,12 +545,6 @@ unique_copy
 
 
 
-
-
-
-
-
-
 ```c++
 	string
         构造函数：
@@ -582,8 +578,6 @@ int main(){
     return 0;
 }
 ```
-
-
 
 
 

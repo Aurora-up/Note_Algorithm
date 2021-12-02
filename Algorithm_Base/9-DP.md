@@ -76,7 +76,7 @@ for(int j = 0 ; j <= m ; j ++)
 
 
 
-#### 2 ：01背包问题
+##### 2 ：01背包模板题
 
 https://www.acwing.com/problem/content/2/
 
@@ -108,7 +108,7 @@ int main(){
     for(int i = 1 ; i <= n ; i++){
         for(int j = 0 ; j <= m ; j++){
             f[i][j] = f[i-1][j];
-            if(j >= v[i]) f[i][j] = max(f[i][j],f[i-1][j - v[i] ]+ w[i]);
+            if(j >= v[i]) f[i][j] = max(f[i][j],f[i-1][j - v[i]]+ w[i]);
         }
     }
     cout << f[n][m] << endl;
@@ -145,7 +145,7 @@ for(int i = 1 ; i <= n ; i++)
 
 ```
 
-#### 278：数字组合
+##### 278：数字组合
 
 https://www.acwing.com/problem/content/280/
 
@@ -153,6 +153,8 @@ https://www.acwing.com/problem/content/280/
 N 个正整数就是 N 个物品，M 就是背包的容积。
 在外层循环到 i 的时候（表示从 前 i 个数中选），设 F[j] 表示 “和为 j” 有多少种方案。
 ```
+
+
 
 ```c++
 #include<iostream>
@@ -184,10 +186,35 @@ int main()
 
 #### 完全背包
 
+![](image/WQDP.png)
+
+```c++
+int f[MAX_M+1];
+meset(f, 0xcf, sizeof f);
+f[0] = 0;
+
+for(int i = 1 ; i <= n ; i++)
+{
+    for(int j = v[i] ; j <= m ;j --)
+        f[j] = max(f[j] ,f[j - v[i]] + w[i]);
+}
+int ans = 0;
+for(int j = 0 ; j <= m ; j++)
+    ans = max(ans, f[j]);
+
+```
+
+
+
+##### 3：完全背包模板题
+
 https://www.acwing.com/problem/content/3/
 
 ```
-特点：每件物品有无限个；
+特点：每件物品有无限个。
+
+在 01背包中，按照的是第 i 个物品选 1 个 还是选 0 个来分；
+完全背包中，物品的个数不限，那么就可以使用 第 i 个物品选 若干个来进行划分。
 ```
 
 ![](image/DP_WanQuanbackpack.png)
@@ -211,14 +238,13 @@ int main(){
     //  原始状态方程，数据量的增加会超时
     for(int i = 1 ; i <= n ; i++)
         for(int j = 0 ; j <= m ; j++)
-            for(int k = 0 ; k * v[i] <= j ; k++)           //  限制完全背包的r
+            for(int k = 0 ; k * v[i] <= j ; k++)      //  限制完全背包的r
                 f[i][j] = max(f[i][j] , f[i-1][j - v[i] * k] + w[i] *k);
     
     cout << f[n][m] << endl;
     
     return 0;
 }
-
 
 
 
@@ -231,24 +257,48 @@ for(int i = 1 ; i <= n ; i ++ )
 
 
 
-
 //  再次优化 (一维)
 int f[N];
 for(int i = 1 ; i <= n ; i++)
     for(int j = v[i] ; j <= m ; j++){
-        f[j] = max(f[j] , f[j-v[i]] + w[i]);
+        f[j] = max(f[j] , f[j - v[i]] + w[i]);
     }
-cout << f[m] << endl;        
-    
+
+cout << f[m] << endl;            
 ```
 
 
 
-
-
-
-
 #### 多重背包
+
+**直接拆分法：**
+
+求解多重背包问题最直接的方法是把第 $i$ 种物品看作独立的 $C_i$ 个物品。转换为共有 $\sum_{i=1}^N$ 个物品的 
+
+0/1背包问题进行计算，时间复杂度是  $o(M * \sum_{i=1}^N C_i)$ 。
+
+```c++
+int v[N] , w[N], c[N];
+int f[N];
+
+memset(f, 0xcf ,sizeof f);  // oxcf 是 -INF
+f[0] = 0;
+
+for(int i = 1 ; i <= n ; i++)
+    for(int j = 1 ; j <= c[i] ; j++)
+        for(int k = m ; k >= v[i]; k--)
+            	f[k] = max(f[k],f[k-v[i]] + w[i]);
+int ans = 0;
+for(int i = 0 ; i <= m ; i++) ans = max(ans , f[i]);
+```
+
+**二进制拆分**
+
+![](image/DP_mulit_YH.png)
+
+
+
+##### 4：多重背包模板题1
 
 https://www.acwing.com/problem/content/4/
 
@@ -282,8 +332,8 @@ int main(){
 }    
 
 普通优化时的问题：
-f[i][j] = max(f[i-1][j] , f[i-1][j-v]+w , f[i-1][j-2v]+2w ,...,f[i-1][j-sv] + sw)
-f[i][j-v]=max(         f[i-1][j-v],f[i-1][j-1]+w,...,f[i-1][j-(s-1)v]+(s-1)w + f[i-1][j-sv]+(s+1)w );  
+f[i][j]=max(f[i-1][j],f[i-1][j-v]+w , f[i-1][j-2v]+2w ,...,f[i-1][j-sv] + sw)
+f[i][j-v]=max(        f[i-1][j-v],f[i-1][j-1]+w,...,f[i-1][j-(s-1)v]+(s-1)w + f[i-1][j-sv]+(s+1)w)
 // 最后多余的一项会使我们无法正常的转移， max() 无法使用
 
 // 使用 二进制 来进行优化
@@ -292,17 +342,146 @@ f[i][j-v]=max(         f[i-1][j-v],f[i-1][j-1]+w,...,f[i-1][j-(s-1)v]+(s-1)w + f
 
 ```
 
+##### 5：多重背包模板题2
+
+https://www.acwing.com/problem/content/5/
+
+**二进制优化**
+
+```
+对于某一整数  s;
+将 s 用 2的幂次方数进行拆分。
+    1 , 2 , ... , 2^(k-1) , ... , c , ... ,s, ... 2^(k+1)
+
+1到 2^(k-1) 可以凑出 1 到 2^(k-1) + 2^(k-1) - 1 = k 的数。
+    需要 c + k 恰好等于 整数 s。
+
+其中的 s 就是我们每个物品的个数限制。
+使用原先的枚举方式，需要我们从 0 一直枚举到 s ，而这样处理之后。
+就可以将 o(n) 优化到 o(logn)
+
+```
+
+```c++
+#include <iostream>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+const int N = 25000 , M = 2010; // N = 2000 * log_2 (2000)
+
+int n ,m;
+int v[N] , w[N];
+int f[N];
+
+int main()
+{
+    cin >> n >> m;
+    
+    int cnt = 0;  // 划分组后（新的物品）
+    for(int i = 1 ; i <= n ; i++)
+    {
+        int a, b, s;
+        cin >> a >> b >> s;
+        int k = 1;   
+        while(k <= s)
+        {
+            cnt ++;
+            v[cnt] = a * k;
+            w[cnt] = b * k;
+            s -= k ,k *= 2;
+        }
+        // k 已经走到小于s的最大的2的幂次方数
+        // s 也已经累减，再将剩余的 s 的作为一组即可
+        if(s > 0)  
+        {
+            cnt ++;
+            v[cnt] = a *s;
+            w[cnt] = b *s;
+        }
+    }
+    
+    n = cnt;
+    
+    for(int i = 1 ; i <= n ; i++)
+        for(int j = m ; j >= v[i] ; j--)
+            f[j] = max(f[j] , f[j - v[i]] + w[i]);
+    
+    cout << f[m] << endl;
+    return 0;
+}
+```
+
 
 
 #### 分组背包
 
-https://www.acwing.com/problem/content/9/
+![](image/DP_mulit_bac_0.png)
+
+```c++
+memset(f, 0xcf , sizeof f);
+f[0] = 0;
+
+for(int i = 1 ; i <= n ; i++)
+	for(int j = m ; j >= 0 ; j--)
+		for(int k = 1 ; k <= c[i] ; k++)
+			if(j >= v[i][k])
+				f[j] = max(f[j],f[j-v[i][k]] + w[i]);
+```
+
+除了倒序循环 $j$ 之外吗，**注意**
+
+对于**每一组内  $c[i]$ 个物品的循环 $k$** 应该放在 $j$ 的**内层**。从背包的角度看，这是因为每组内至少选择一个物品，若将 $k$  置于 $j$ 的外层，就会类似于多重背包，每组物品在 $F$ 的祖上的转移会产生累积，最终可以选择超过 1 个物品。从动摇规划的角度，$i$ 是 **阶段** ， $i$ 和 $j$ 共同过程  **状态** 而 $k$ 是**决策**，
+
+——在第 $i$ 组内是u哦那个哪一个物品，这三者的顺组不能乱。
 
 ```c++
 特点：每一组当中每个物品最多只能有一个
 ```
 
+##### 9：分组背包模板题
 
+![](image/DP_spreater_back.png)
+
+枚举第 $i$ 组物品选 或 不选，
+
+从第 $i$ 组物品当中选择第 $k$ 个物品：$f[i-1,j-v[i][k]] + w[i][k]$
+
+https://www.acwing.com/problem/content/9/
+
+```c++
+#include <iostream>
+#include <cstring>
+#include <algorithm>
+using namespace std;
+const int N = 110;
+
+int n, m;
+int v[N][N] , w[N][N] , s[N]; //  s[N] 表示每一组物品的个数。
+int f[N];
+
+int main()
+{
+    cin >> n >> m;
+    
+    for(int i = 1 ; i <= n ; i++)
+    {
+        cin >> s[i];
+        for(int j = 0 ; j < s[i] ; j++)
+            cin >> v[i][j] >> w[i][j];
+    }     
+    
+    for(int i = 1 ; i <= n ;i++)
+        for(int j = m ; j >= 0; j--)
+            for(int k = 0 ; k < s[i] ; k++)
+                if(v[i][k] <= j)
+                    f[j] = max(f[j] ,f[j - v[i][k]] + w[i][k]);
+     
+    cout << f[m] << endl;
+    
+    return 0;
+} 
+```
 
 
 

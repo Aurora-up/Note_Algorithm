@@ -837,15 +837,11 @@ int main()
     for (int i = 0 ; i <= n ; i ++ ) f[i][0] = i;
     
     for(int i = 1 ; i <= n ; i++)
-    {
         for(int j = 1 ; j <= m ; j++)
         {
-            f[i][j] = min(f[i-1][j] + 1 , f[i][j-1] + 1);
-            if(a[i] == b[j]) 
-                f[i][j] = min(f[i][j] , f[i-1][j-1]);
-            else f[i][j] = min(f[i][j] , f[i-1][j-1] + 1);
+            f[i][j] = min(f[i-1][j]+1 ,f[i][j-1]+1);
+            f[i][j] = min(f[i][j],f[i-1][j-1] + (a[i] != b[j]));
         }
-    }
     
     printf("%d\n",f[n][m]);
     
@@ -854,18 +850,59 @@ int main()
 
 ```
 
-899:编辑距离
+##### 899:编辑距离
 
 https://www.acwing.com/problem/content/901/
 
+```c++
+#include <iostream>
+#include <cstring>
+#include <algorithm>
+using namespace std;
+const int N = 15 , M = 1010;
+int n, m;
+int f[N][N];
+char str[M][N];
+
+int edit_distance(char a[] ,char b[])
+{
+    int la = strlen(a + 1) , lb = strlen(b + 1);
+    
+    for(int i = 0 ; i <= lb ; i++) f[0][i] = i;
+    for(int i = 0 ; i <= la ; i++) f[i][0] = i;
+    
+    for(int i = 1 ; i <= la ; i++)
+        for(int j =  1 ; j <= lb ; j++)
+        {
+            f[i][j] = min(f[i-1][j] + 1, f[i][j-1] + 1);
+            f[i][j] = min(f[i][j] ,f[i-1][j-1] + (a[i] != b[j]));
+        }
+
+    return f[la][lb];
+}
+
+int main()
+{
+    scanf("%d%d",&n ,&m);
+    for(int i = 0 ; i < n ; i++) scanf("%s", str[i] + 1);
+    
+    while(m--)
+    {
+        char s[N];
+        int limit;
+        scanf("%s%d", s + 1 , &limit);
+        
+        int res =  0;
+        for(int i = 0 ; i < n ; i++)
+            if(edit_distance(str[i], s) <= limit)
+                res ++;
+        printf("%d\n",res);
+    }
+    
+    
+    return 0;
+} 
 ```
-
-
-```
-
-
-
-
 
 
 
@@ -982,6 +1019,13 @@ https://www.acwing.com/problem/content/902/
 完全背包做法：
 	n 是背包的容量， 物品的体积是 1 ~ n， 每种物品有无限个。
 	求解的是恰好装满背包的方案数。
+
+状态标识：
+f[i][j] 表示从 1 ~ i 中选，且总和等于 j 的方案数。
+
+状态转移方程：
+f[i][j] = f[i-1][j] + f[i][j-i]; //  二维
+f[j] = f[j] + f[j-i]
 ```
 
 ```c++
@@ -1011,14 +1055,48 @@ int main()
 ```
 计数 DP写法：
 
+集合： 所有总和是 i ,并且恰好表示成 j 个数的和的方案。
+状态表示：
+
+集合的划分：
+	1：方案中的最小值为 1 (即 j 个数中的最小值为 1)
+		将这种方案的去掉一个最小值 1，方案就会变成和是 i-1, 个数为 j - 1的方案。
+		f[i-1][j-1]
+	2：方案中的最小值大于 1 
+		将每个数都减去 1. 一共有 j 个数。
+		将状态变成 总和 i - j , 一共有 j 个数的状态。
+		然后反过来，将每个数都加上 1 ，就会又回到 总和为 i ，一共有 j 个数的状态。
+		f[i-j][j]
+		
+状态转移方程：
+f[i][j] = f[i-1][j-1] + f[i-j][j]
+ans = f[n][1] + f[n][2] + ... +f[n][n]
 ```
 
-
-
 ```c++
- 
+#include<iostream>
+#include<cstring>
+using namespace std;
+const int N = 1010 , mod = 1e9 + 7;
+int n ;
+int f[N][N];
 
-
+int main()
+{
+    scanf("%d",&n);
+    
+    f[0][0] = 1;
+    for(int i = 1 ;i <= n ; i++)
+        for(int j = 1; j <= i; j++)
+            f[i][j] = (f[i-1][j-1] + f[i-j][j]) % mod;
+    
+    int ans = 0;
+    for(int i = 1 ; i <= n ; i++) ans = (ans + f[n][i])% mod;
+            
+    printf("%d\n",ans);     
+    
+    return 0;
+}
 ```
 
 
@@ -1035,59 +1113,20 @@ https://www.acwing.com/problem/content/340/
 
 ```
 [a , b]  0 ~ 9
- 
+
 实现一个函数 count(n , x)   统计 1 ~ n 中 x 出现的次数
 
 然后通过 “前缀和”思想 求某个区间中  x 出现的次数
-count(b ,x) - count(a - 1 , x )   统计 (a, b)中 x 出现的次数。
-
+count(b ,x) - count(a - 1 , x )   统计 (a, b)中 x 出现的次数
 ```
-
-![](image/ShuWeiTongJiDp.png)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
 #### 状态压缩 DP
 
-动态规划的过程是随着“阶段”的增长，在每个状态维度上不断扩展的。在任意时刻，已经求出最优解的状态与尚未求出最优解的状态在各维度上的分界点组成DP 扩展的“轮廓”。对于某些问题，我们需要在动态规划的 “状态” 中记录一个集合，保存这个 ”轮廓“的详细信息，以便进行状态转移。若集合大小不超过 N ， 集合中每个元素都是小于 K 的自然数，则我们可以把这个集合看作一个 N 位 K 进制数。
+动态规划的过程是随着“阶段”的增长，在每个状态维度上不断扩展的。在任意时刻，已经求出最优解的状态与尚未求出最优解的状态在各维度上的分界点组成DP 扩展的“轮廓”。对于某些问题，我们需要在动态规划的 “状态” 中记录一个集合，保存这个 ”轮廓“的详细信息，以便进行状态转移。若集合大小不超过 N ， 集合中每个元素都是小于 K 的自然数，则我们可以**把这个集合看作一个 N 位 K 进制数。**
 
-以一个 [ 0 , K^N -  1] 之间的十进制整数的形式作为  DP状态集合的一维。
+**以一个 [ 0 , K^N -  1] 之间的十进制整数的形式作为  DP状态集合的一维。**
 
 这种**把集合转化为整数记录在 DP 状态中**的一类算法，被称为  **状态压缩 DP**。
 
@@ -1095,11 +1134,97 @@ count(b ,x) - count(a - 1 , x )   统计 (a, b)中 x 出现的次数。
 
 https://www.acwing.com/problem/content/293/
 
+![](image/DP_ZhuangTaiYS.png)
 
+```
+核心：先将方块横着放，再竖着放
+总方案数：等于只放横着的小方块的合法方案数
 
+如何判断当前方案是否啊合法？
+每一列在前一列伸出后还剩余的位置，
+能否填充竖着的小方块，每一列内部所有连续的
+空着的小方块，需要时偶数个。
 
+状态表示：
+f[i , j]表示已经将前  i – 1 列摆好，且从第   i – 1 列，伸出到第 i 列的状态是   j 。
 
+状态计算：
+假如某个状态是 k = 00100 ;
+需要确定是： 由    f[i-2][k]  这个状态能否转移到   f[i-1][j]
 
+1： j  和 k 不可以叠着放，即 k 这个状态中已经占的方格，j 不能再占。
+用二进制表示状态的话，就是  j  &  k  == 0.
+
+2:    前 i – 1 列已经固定时，要求第 i-1 列所以连续的
+空着的位置的长度必须时偶数。
+
+所以最终的状态就是   f[m][0]   其表示 前 m-1 列已经固定，
+且没有伸到  m 列的方格的状态。
+```
+
+```
+优化：
+	预处理一下：对于每个状态 j 而言 ,哪些状态可以更新到 j。
+```
+
+```c++
+#include <iostream>
+#include <cstring>
+#include <algorithm>
+#include <vector>
+using namespace std;
+typedef long long LL;
+
+const int N = 12 , M = 1 << N;
+
+int n, m;
+LL f[N][M];
+vector<int> state[M];  //  存储所有的合法状态
+bool st[M]; //  判断当前这一列空着的连续小方格是不是偶数个
+
+int main()
+{
+    while(cin >> n >> m, n || m)
+    {
+        for(int i = 0 ; i < 1 << n ; i++)
+        {
+            int cnt = 0;
+            bool is_valid = true;
+            for(int j = 0 ; j < n ; j++)
+                if(i >> j & 1)
+                {
+                    if(cnt & 1) 
+                    {
+                        is_valid = false;
+                        break;
+                    }
+                    cnt = 0;
+                }
+                else cnt++;
+            if(cnt & 1) is_valid = false;
+            st[i] = is_valid;
+        }
+        for(int i = 0 ; i < 1 << n ; i++)
+        {
+            state[i].clear();
+            for(int j = 0 ; j < 1 << n ; j++)
+                if((i & j) == 0 && st[i | j])
+                    state[i].emplace_back(j);
+        }
+    
+        memset(f, 0 ,sizeof f);
+        f[0][0] = 1;
+        
+        for(int i = 1 ; i <= m ; i++)
+            for(int j = 0 ; j < 1 << n ; j++)
+                for(auto k : state[j])
+                    f[i][j] += f[i-1][k];
+        
+        cout << f[m][0] << endl;
+    }
+    return 0;
+}
+```
 
 
 

@@ -139,11 +139,14 @@ set, map, multiset, multimap, 基于平衡二叉树（红黑树），动态维�
     
     
     map/multimap
-        insert()  插入的数是一个pair
+    	emplace(key , v) 插入的是一个 pair
+        insert()  插入的是一个pair
         erase()  输入的参数是pair或者迭代器
-        find()
+        find(key) 返回的是该 key位置的迭代器 ，反之返回末尾元素的迭代器。
         []  注意multimap不支持此操作。 时间复杂度是 O(logn)
         lower_bound()/upper_bound()
+        count(key) 查找当前容器中 键为key 的键值对的个数并返回。由于map 中元素唯一，
+        			最大返回 1
 ```
 
 #### unordered_set,underorder_map,unordered_multiset,unordered_multiamp
@@ -636,6 +639,66 @@ int main(){
 
 ## 详解
 
+### c++关联式容器
+
+| 关联式容器名称 |                             特点                             |
+| -------------- | :----------------------------------------------------------: |
+| map            | 定义在 <map> 头文件中，使用该容器存储的数据，其各个元素的键必须是唯一的（即不能重复），该容器会根据各元素键的大小，默认进行升序排序（调用 std::less<T>）。 |
+| set            | 定义在 <set> 头文件中，使用该容器存储的数据，各个元素键和值完全相同，且各个元素的值不能重复（保证了各元素键的唯一性）。该容器会自动根据各个元素的键（其实也就是元素值）的大小进行升序排序（调用 std::less<T>）。 |
+| multimap       | 定义在 <map> 头文件中，和 map 容器唯一的不同在于，multimap 容器中存储元素的键可以重复。 |
+| multiset       | 定义在 <set> 头文件中，和 set 容器唯一的不同在于，multiset 容器中存储元素的值可以重复（一旦值重复，则意味着键也是重复的）。 |
+
+#### map
+
+http://c.biancheng.net/view/7173.html
+
+**模板参数**
+
+```c++
+template < class Key, 	   // 指定键（key）的类型
+           class T,        // 指定值（value）的类型
+           class Compare = less<Key>,                     // 指定排序规则
+           class Alloc = allocator<pair<const Key,T> >  // 指定分配器对象的类型
+           > 
+class map;
+```
+
+```c++
+默认的  map 是按照 键的升序排列。
+对于 string 是默认按照字典序来排列。
+
+//  降序 int 排列
+map<int,string,greater<int>> mp;
+
+//  倒字典序 string 排列
+map<string , int ,greater<string>> mp;
+
+```
+
+
+
+```c++
+#include<map>
+#include<iostream>
+#include<cstring>
+#include<vector>
+using namespace std;
+
+
+int main()
+{
+	
+}
+```
+
+
+
+
+
+
+
+
+
 ### c++ 无序容器
 
 又称哈希容器。
@@ -777,6 +840,8 @@ int main()
     
     return 0;
 }
+
+
 ```
 
 #### unordered_multimap

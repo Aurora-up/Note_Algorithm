@@ -363,11 +363,168 @@ int main()
 
 https://www.acwing.com/activity/content/problem/content/1488/
 
+圆柱体体积 $ V = \pi R^2 h$ 。
+
+侧面积  $ A = 2 \pi R H$
+
+底面积  $ A' = \pi R^2 $
+
+其中题目要求 $\pi$ 不参加计算（防止小数异常）
+
+根据： $ R_i > R_{i+1} , H_i > H_{i+1}$  (  $ i ( 1 < i < M)$ )    $ i $ 是从下往上的。
+
+```
+搜索的框架：
+从下往上搜索，枚举每层的 半径 和 高度作为分支。
+
+搜索面对的状态：
+正在搜索 第 dep 层， 当前外表面面积为 S ， 当前体积为 V , 第 dep + 1层的高度和半径。
+使用 H[N] , R[N] 分别记录 每一层的高度和半径。
+
+面积 S： 整个  “上表面”  的面积之和等于 ”最底层“  的底面积，所以在其他层时， 只需要计算
+侧面积即可。
+
+1： 优化搜索顺序：
+在搜索中，先搜索 “决策少” 的部分。因为这里的总体积是确定的。并且体积收到 R 和 H  两个因素
+决定，其中 R 的 平方级别的，  H 是线性级别的，所以 先搜索 R 大 和 H 大 的模块。
+
+也即：从下往上搜索。
+
+2： 上下界剪枝。
+在第  dep 层时。
+```
+
+去掉 $\pi$ 之后， $V = R^2 H$ ,所以  $H = \frac {V}{R^2}$
+
+首先，枚举  $ R \in [ dep , \ \  min(⌊ \sqrt{N - v}⌋ , R[dep+1] - 1)] $
+
+其次，枚举  $H \in [dep , min (⌊ \frac {N -v}{R^2}⌋ , H[dep + 1] - 1)]$
+
+```
+这里的 N 时限制的总体积，  v 是其他层已经使用的蛋糕体积。
+R 和  H 的边界是  R[dep + 1] - 1 和 H[dep + 1] - 1的原因是：
+```
+
+$R_i 严格小于 R_{i - 1}$ 且  $ H_i 严格小于 H_{i-1}$
+
+```
+从顶层第一枚举时， 即从 M 倒序枚举时， 
+R 最小可以可取当前层数 dep , 最大 可取剩余体积的的半径，但不能超过，下一层的 半径的最小。
+H 也是同样。
+```
+
+```
+3： 可行性剪枝
+可以预处理出 从上往下前 i 层的  最小体积和侧面积。
+显然，当第 1 ~ i 层的半径分别取 1,2,3...i,高也分别取 1,2,3...i 时，有最小体积和侧面积。
+
+如果当前体积 v 加上 1 ~ dep - 1 层的最小体积 >  N ， 可以剪枝。
+```
+
+```
+4： 最优性剪枝一：
+如果当前表面积 s 加上 1 ~ dep - 1层的最小侧面积大于已经搜到的答案，剪枝。
+```
+
+```
+5：  最优性剪枝二：
+```
+
+利用 h 和 r 数组，
+
+$1 $ ~ $ dep -1 $层的体积可表示为： $ n - v = \sum ^{dep-1}_{k=1} h[k] * r[k] ^2$
+
+$1 $ ~ $ dep -1 $层的面积可表示为： $ 2 \sum ^{dep-1}_{k=1} h[k] * r[k]$
+
+因为 
+$$
+2 \sum ^{dep-1}_{k=1} h[k] * r[k] = \frac{2}{r[dep]} * \sum_{k=1}^{dep-1}h[k]*r[k]*r[dep] \geqslant \frac{2}{r[dep]} * \sum_{k=1}^{dep-1}h[k]*r[k]^2
+$$
+
+$$
+\geqslant \frac {2(n - v)}{r[dep]}
+$$
+
+所以当  $\frac {2(n-v)}{r[dep]} + s $  大于已经搜到的答案时，可以剪枝。
+
+![](image/JianZhi_4.png)
+
+```c++
+#include<iostream>
+#include<cmath>
+#include<algorithm>
+using namespace std;
+const int N = 25 , INF = 1e9;
+
+int  n ,m;
+int R[N] , H[N];
+int minv[N] , mins[N];
+
+int ans = INF;
+
+// u 是当前这层的层号
+// v 是当前已经枚举的总体积
+// s 是当前已经枚举的总面积
+void dfs(int u, int v, int s)
+{
+    if(v + minv[u] > n) return;
+    if(s + mins[u] >= ans) return;
+    if(s + 2 * (n - v) / R[u + 1] >= ans) return;
+    
+    if(!u) //  处理到最底层
+    {
+        if(n == v) ans = s;
+        return;
+    }
+    
+    for(int r = min((int)sqrt(n-v),R[u+1]-1); r >= u ; r--)
+        for(int h = min((n-v) / r / r,H[u+1]-1); h >= u ; h--)
+        { 
+            int t = 0;
+            if(u == m) t = r * r;
+            R[u] = r , H[u] = h;
+            dfs(u-1 , v + r*r*h , s + 2 * r *h + t);
+        }
+    
+}
+
+int main()
+{
+    cin >> n >> m;
+    
+    //  预处理 minv 和 mins 的值
+    for (int i = 1; i <= m; i ++ )
+    {
+        minv[i] = minv[i - 1] + i * i * i; // R^2 * H + 之前的面积 
+        mins[i] = mins[i - 1] + 2 * i * i;
+    }
+    
+    R[m + 1]  = H[m + 1] = INF;
+    dfs(m , 0 , 0);
+    
+    if(ans == INF) ans = 0;
+    cout << ans << endl;
+    
+    return 0;
+}
+
 ```
 
 
 
-```
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -396,7 +396,7 @@ https://www.acwing.com/activity/content/problem/content/1488/
 
 去掉 $\pi$ 之后， $V = R^2 H$ ,所以  $H = \frac {V}{R^2}$
 
-首先，枚举  $R \in [ dep , min(⌊ \sqrt {N - v}⌋ , R[dep+1] - 1)]$
+首先，枚举  $ R \in [ dep , \ \  min(⌊ \sqrt{N - v}⌋ , R[dep+1] - 1)] $
 
 其次，枚举  $H \in [dep , min (⌊ \frac {N -v}{R^2}⌋ , H[dep + 1] - 1)]$
 
@@ -405,7 +405,7 @@ https://www.acwing.com/activity/content/problem/content/1488/
 R 和  H 的边界是  R[dep + 1] - 1 和 H[dep + 1] - 1的原因是：
 ```
 
-$R_i 严格小于 R_{i - 1}$ 且  $H_i 严格小于 H_{i-1}$
+$R_i 严格小于 R_{i - 1}$ 且  $ H_i 严格小于 H_{i-1}$
 
 ```
 从顶层第一枚举时， 即从 M 倒序枚举时， 
@@ -432,9 +432,9 @@ H 也是同样。
 
 利用 h 和 r 数组，
 
-$1$ ~ $dep -1$层的体积可表示为： $n - v = \sum ^{dep-1}_{k=1} h[k] * r[k] ^2$
+$1 $ ~ $ dep -1 $层的体积可表示为： $ n - v = \sum ^{dep-1}_{k=1} h[k] * r[k] ^2$
 
-$1$ ~ $dep -1$层的面积可表示为： $2 \sum ^{dep-1}_{k=1} h[k] * r[k]$
+$1 $ ~ $ dep -1 $层的面积可表示为： $ 2 \sum ^{dep-1}_{k=1} h[k] * r[k]$
 
 因为 
 $$

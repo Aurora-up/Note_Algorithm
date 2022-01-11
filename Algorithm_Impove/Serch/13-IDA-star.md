@@ -53,7 +53,6 @@ for(int x = l ; x <= r ; x++ , y++) q[y] = w[depth][x];
 
 
 memcopy(q , w[depth] , sizeof q);
-
 ```
 
 

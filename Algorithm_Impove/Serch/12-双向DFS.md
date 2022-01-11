@@ -47,70 +47,81 @@ https://www.acwing.com/problem/content/173/
 
 
 ```c++
-#include<iostream>
-#include<cstring>
-#include<algorithm>
+#include <iostream>
+#include <cstring>
+#include <algorithm>
 using namespace std;
-
 const int N = 46;
 typedef long long LL;
 
 int n , m , k;
-int w[N];
-int weights[1 << 25] , cnt = 1; //  weights 用来存储所有凑出来的重量
+int w[N]; // 存储所有的重量
+int wSum[1 << 25]; // 存储已经凑出的重量之和
+int cnt = 1;
 int ans;
 
-// u 表示枚举到的当前的数,s 表示枚举到当前的和 
-void dfs1(int u, int s)
+// u 是当前枚举了几个数， s 是枚举到当前数 的和
+void dfs1(int u , int s)
 {
     if(u == k) //  已经枚举到第 k 个数
     {
-        weights[cnt++] = s;  //  将当前和 存储 weights 中
+        wSum[cnt++] = s; // 将 某个分支的 和存储 wSum中
         return;
     }
     
-    dfs1(u + 1 ,s); //  不用当前这个 物品
-    if((LL)s + w[u] <= m ) dfs1(u + 1 ,s + w[u]); //  用当前这个 物品
+    // 两个 分支：
     
+    //  1： 不采用第 u 个数
+    dfs1(u + 1 , s);
+    
+    //  2： 采用第 u 个数
+    if((LL)s + w[u] <= m ) dfs1(u + 1 , s + w[u]);
 }
+
 
 void dfs2(int u , int s)
 {
-    if(u >= n)
+    if(u == n) //  在 dfs1 中一个分支的基础上 在第二段区间上进行搜索
     {
-        //  二分出  <= m - s 最大的数
+        //  二分去搜索符合条件的值
         int l = 0 , r = cnt - 1;
         while(l < r)
         {
             int mid = l + r + 1 >> 1;
-            if(weights[mid] <= m - s) l = mid;
+            if(wSum[mid] <= m - s) l = mid;
             else r = mid - 1;
         }
-    	
-        ans = max(ans , weights[l] + s); 
+        ans = max(ans , wSum[l] + s);
         return;
     }
-    dfs2(u + 1 , s); //  不用当前的 物品
-    if((LL)s + w[u] <= m ) dfs2(u + 1 ,s + w[u]); //  用当前的 物品
+    
+    //  两个 分支：
+    dfs2(u + 1 , s);
+    if((LL) s + w[u] <= m) dfs2(u + 1 , s + w[u]);
+    
 }
+
 
 int main()
 {
     cin >> m >> n;
     for(int i = 0 ; i < n ; i++) cin >> w[i];
-
-    //  倒序
+    
+    //  倒序排序，优化搜索顺序。
     sort(w , w + n);
-    reverse( w , w + n);
+    reverse(w  , w + n);
     
-    k = n / 2 + 2; //  k 取这个值效果好
-    dfs1(0,0);
+    // 将权重分成两份
+    k = n / 2 + 2; //  0 ~ k 为第一份,经验证，k 取这个值最好
+    dfs1(0 , 0);
     
-    //  排序，判重
-    sort(weights, weights + cnt);
-    cnt = unique(weights , weights + cnt) - weights;
     
-    dfs2(k , 0); // 第二段搜索从 k 开始
+    // 排序，去重
+    sort(wSum , wSum + cnt);
+    cnt = unique(wSum , wSum + cnt) - wSum;
+    
+    //  k ~ n  为第二份
+    dfs2(k , 0);
     
     cout << ans << endl;
     

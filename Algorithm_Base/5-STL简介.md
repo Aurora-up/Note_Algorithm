@@ -23,17 +23,18 @@ vector, 变长数组，倍增的思想
 
 ```c++
 /* 使用注意*/
-//  不能使用 q[i] 去shu
+//  不能使用 q[i] 去赋初值
 vector q;
-
+for(int i = 0 ; i < n ; i++){
+    q.emplace_back(i);
+}
 
 //  使用这个构造器之后相当于限定了 vector 的长度，才能使用 q[i] 去输入,并且 n 值要已经赋值
 vector q(n);
-
-
+for(int i = 0 ; i < n ; i++){
+    scanf("%d" ,&q[i]);
+}
 ```
-
-
 
 #### pair
 
@@ -94,10 +95,11 @@ queue, 队列
 priority_queue, 优先队列，默认是大根堆   ---->   t
     size()
     empty()
-    push()  插入一个元素
+    push()  插入一个元素  
     top()  返回堆顶元素
     pop()  弹出堆顶元素
     
+    emplace() 插入一个元素 更高效
     对于数字来来说，我们可以在插入的时候插入负数即可，输出的时候输出 x 即可
     定义成小根堆的方式：priority_queue<int, vector<int>, greater<int>> q;
 ```
@@ -108,7 +110,7 @@ priority_queue, 优先队列，默认是大根堆   ---->   t
 stack, 栈
     size()
     empty()
-    push()  向栈顶插入一个元素
+    push()  向栈顶插入一个元素   --> emplace()
     top()  返回栈顶元素
     pop()  弹出栈顶元素
 ```
@@ -125,6 +127,8 @@ deque, 双端队列 ，支持队头队尾的插入删除，也支持随意访问
     push_front()/pop_front()
     begin()/end()
     []
+   	
+    emplace_back() / emplace_front()
 ```
 
 #### set,map,multiset,multimap
@@ -238,8 +242,6 @@ int main()
 	return 0;
 }
 ```
-
-
 
 ```
 2：关系运算 类仿函数：
@@ -666,6 +668,8 @@ int main(){
 
 http://c.biancheng.net/view/7173.html
 
+底层使用红黑树 ， 查找时间复杂度 $O(logn)$
+
 **模板参数**
 
 ```c++
@@ -689,21 +693,11 @@ map<string , int ,greater<string>> mp;
 
 ```
 
+例题：
 
 
-```c++
-#include<map>
-#include<iostream>
-#include<cstring>
-#include<vector>
-using namespace std;
 
-
-int main()
-{
-	
-}
-```
+https://www.acwing.com/problem/content/1954/
 
 
 

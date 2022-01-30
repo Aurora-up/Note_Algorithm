@@ -174,7 +174,9 @@ tmux a -t lidong_1
 # 删除所有
 gg d G 
 
-# 格式化文件
+# 格式化文件s
 gg = G
+
+
 ```
 

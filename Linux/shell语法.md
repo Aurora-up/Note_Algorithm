@@ -860,47 +860,421 @@ done
 示例2，输出当前路径下的所有文件名，每个文件名一行：
 
 ```shell
-for file in `ls`
+for file in `ls`    # 获取 ls 命令的 stdout 后使用 for 循环输出
 do
     echo $file
 done
 ```
 
+示例3，输出1-10
+
+```shell
+for i in $(seq 1 10)
+do
+    echo $i
+done
+```
+
+示例4，使用  `{1..10}` 或者  `{a..z}` ， 反过来输出也可以例如 `{z..a}`
+
+```shell
+for i in {a..z}
+do
+    echo $i
+done
+```
+
+**for ((…;…;…)) do…done**
+
+命令格式：
+
+```shell
+for ((expression; condition; expression))
+do
+    语句1
+    语句2
+done
+```
+
+示例，输出1-10，每个数占一行：
+
+```shell
+for ((i=1; i<=10; i++))
+do
+    echo $i
+done
+```
+
+**while…do…done循环**
+
+命令格式：
+
+```shell
+while condition
+do
+    语句1
+    语句2
+    ...
+done
+```
+
+示例，文件结束符为 `Ctrl+d`，输入文件结束符后 read 指令返回 false。
+
+```shell
+while read name
+do
+    echo $name
+done
+```
+
+until…do…done循环
+
+命令格式：
+
+```shell
+until condition
+do
+    语句1
+    语句2
+    ...
+done
+```
+
+示例，当用户输入 yes 或者 YES 时结束，否则一直等待读入。
+
+```shell
+until [ "${word}" == "yes" ] || [ "${word}" == "YES" ]
+do
+    read -p "Please input yes/YES to stop this program: " word
+done
+```
+
+**break命令**
+跳出当前一层循环，注意与C/C++不同的是：`break`  不能跳出  `case`  语句。
+
+示例
+
+```shell
+while read name
+do
+    for ((i=1;i<=10;i++))
+    do
+        case $i in
+            8)
+                break
+                ;;
+            *)
+                echo $i
+                ;;
+        esac
+    done
+done
+```
+
+该示例每读入非EOF的字符串，会输出一遍1-7。
+该程序可以输入Ctrl+d文件结束符来结束，也可以直接用Ctrl+c杀掉该进程。
+
+**continue命令**
+
+跳出当前循环。
+
+示例：
+
+```shell
+for ((i=1;i<=10;i++))
+do
+    if [ `expr $i % 2` -eq 0 ]
+    then
+        continue
+    fi
+    echo $i
+done
+```
+
+该程序输出1-10中的所有奇数。
+
+**死循环的处理方式**
+
+如果AC Terminal可以打开该程序，则输入Ctrl+c即可。
+
+否则可以直接关闭进程：
+
+1. 使用top命令找到进程的PID
+2. 输入kill -9 PID即可关掉此进程
 
 
 
+##### 函数
 
+​		bash 中的函数类似于C/C++中的函数，但 `return` 的返回值与C/C++不同，返回的是 `exit code`，取值为$0-255$，$0$ 表示正常结束。
 
+​		如果想获取函数的输出结果，可以通过 `echo` 输出到 `stdout`中，然后通过`$(function_name)`来获取stdout中的结果。
 
+函数的 `return` 值可以通过 `$?` 来获取。
 
+命令格式：
 
+```shell
+[function] func_name() {  # function关键字可以省略
+    语句1
+    语句2
+    ...
+}
+```
 
+**不获取 return 值和 stdout值**
 
+示例
 
+```shell
+func() {
+    name=yxc
+    echo "Hello $name"
+}
 
+func  # 调用函数
+```
 
+输出结果:
 
+```
+Hello yxc
+```
 
+**获取 return 值和 stdout 值**
+不写 return 时，默认`return 0`。
 
+示例
 
+```shell
+func() {
+    name=yxc
+    echo "Hello $name"
 
+    return 123
+}
 
+output=$(func)  # 获取 func 的 stdout
+ret=$?
 
+echo "output = $output"
+echo "return = $ret"
+```
 
+输出结果：
 
+```
+output = Hello yxc
+return = 123
+```
 
+**函数的输入参数**
 
+在函数内，`$1`表示第一个输入参数，`$2`表示第二个输入参数，依此类推。
 
+注意：函数内的`$0`仍然是文件名，而不是函数名。
 
+示例：
 
+```shell
+func() {  # 递归计算 $1 + ($1 - 1) + ($1 - 2) + ... + 0
+    word=""
+    while [ "${word}" != 'y' ] && [ "${word}" != 'n' ]
+    do
+        read -p "要进入func($1)函数吗？请输入y/n：" word
+    done
 
+    if [ "$word" == 'n' ]
+    then
+        echo 0
+        return 0
+    fi  
 
+    if [ $1 -le 0 ] 
+    then
+        echo 0
+        return 0
+    fi  
 
+    sum=$(func $(expr $1 - 1))
+    echo $(expr $sum + $1)
+}
 
+echo $(func 10)
 
+```
 
+输出结果：
 
+```
+55
+```
 
+**函数内的局部变量**
+可以在函数内定义局部变量，作用范围仅在当前函数内。
+
+可以在递归函数中定义局部变量。
+
+命令格式：
+
+```shell
+local 变量名=变量值
+```
+
+例如：
+
+```shell
+#! /bin/bash
+
+func() {
+    local name=yxc
+    echo $name
+}
+func
+echo $name
+```
+
+输出结果：
+
+```
+yxc
+```
+
+第一行为函数内的name变量，第二行为函数外调用name变量，会发现此时该变量不存在。
+
+**exit命令**
+
+`exit` 命令用来退出当前 shell 进程，并返回一个退出状态；使用 `$?` 可以接收这个退出状态。
+
+`exit` 命令可以接受一个整数值作为参数，代表退出状态。如果不指定，默认状态值是 `0`。
+
+`exit` 退出状态只能是一个介于 `0~255` 之间的整数，其中只有 `0` 表示成功，其它值都表示失败。
+
+示例：
+
+```shell
+#! /bin/bash
+
+if [ $# -ne 1 ]  # 如果传入参数个数等于1，则正常退出；否则非正常退出。
+then
+    echo "arguments not valid"
+    exit 1
+else
+    echo "arguments valid"
+    exit 0
+fi
+```
+
+执行该脚本：
+
+```shell
+acs@9e0ebfcd82d7:~$ chmod +x test.sh 
+acs@9e0ebfcd82d7:~$ ./test.sh acwing
+arguments valid
+acs@9e0ebfcd82d7:~$ echo $?  # 传入一个参数，则正常退出，exit code为0
+0
+acs@9e0ebfcd82d7:~$ ./test.sh 
+arguments not valid
+acs@9e0ebfcd82d7:~$ echo $?  # 传入参数个数不是1，则非正常退出，exit code为1
+1
+```
+
+##### 文件重定向
+
+每个进程默认打开3个文件描述符：
+
+- `stdin` 标准输入，从命令行读取数据，文件描述符为 0
+- `stdout`  标准输出，向命令行输出数据，文件描述符为1
+- `stderr`  标准错误输出，向命令行输出数据，文件描述符为2
+
+可以用文件重定向将这三个文件重定向到其他文件中。
+
+**重定向命令列表**
+
+|        命令        |                   说明                    |
+| :----------------: | :---------------------------------------: |
+|  `command > file`  |        将`stdout`重定向到`file`中         |
+|  `command < file`  |         将`stdin`重定向到`file`中         |
+| `command >> file`  |   将`stdout`以追加方式重定向到`file`中    |
+| `command n> file`  |      将文件描述符`n`重定向到`file`中      |
+| `command n>> file` | 将文件描述符`n`以追加方式重定向到`file`中 |
+
+输入和输出重定向
+
+```shell
+echo -e "Hello \c" > output.txt  # 将stdout重定向到output.txt中
+echo "World" >> output.txt  # 将字符串追加到output.txt中
+
+read str < output.txt  # 从output.txt中读取字符串
+
+echo $str  # 输出结果：Hello World
+```
+
+**同时重定向stdin和stdout**
+创建bash脚本：
+
+```shell
+#! /bin/bash
+
+read a
+read b
+
+echo $(expr "$a" + "$b")
+创建input.txt，里面的内容为：
+
+3
+4
+执行命令：
+
+acs@9e0ebfcd82d7:~$ chmod +x test.sh  # 添加可执行权限
+
+# 从input.txt中读取内容，将输出写入output.txt中
+acs@9e0ebfcd82d7:~$ ./test.sh < input.txt > output.txt  
+
+acs@9e0ebfcd82d7:~$ cat output.txt  # 查看output.txt中的内容
+7
+```
+
+##### 引入外部脚本
+
+类似于C/C++中的 include 操作，bash也可以引入其他文件中的代码。
+
+语法格式：
+
+```shell
+. filename  # 注意点和文件名之间有一个空格
+
+或
+
+source filename
+```
+
+示例
+创建 test1.sh，内容为：
+
+```shell
+#! /bin/bash
+
+name=yxc  # 定义变量name
+```
+
+然后创建 `test2.sh`，内容为：
+
+```shell
+#! /bin/bash
+
+source test1.sh # 或 . test1.sh
+
+echo My name is: $name  # 可以使用test1.sh中的变量
+```
+
+执行命令：
+
+```shell
+acs@9e0ebfcd82d7:~$ chmod +x test2.sh 
+acs@9e0ebfcd82d7:~$ ./test2.sh 
+My name is: yxc
+```
 
 
 

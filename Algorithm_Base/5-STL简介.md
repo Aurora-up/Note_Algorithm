@@ -70,8 +70,47 @@ string，字符串
     //把当前串中以pos开始的n个字符拷贝到以s为起始位置的字符数组中，返回实际拷贝的数目
     int copy(char *s, int n ,int pos) 
     
-    
 ```
+
+```c++
+// c++ 中的 string 可以直接按照字典序进行比较（已经重载比较符号），返回值是 0 / 1
+string a = "ABC" , b = "abc";
+cout << (a == b) << " " << (a < b) << " " << (a > b);
+
+
+// 大小写转换 , 使用 transform 模板函数
+transform(a.begin() , a.end() , ::tolower); // 转换小写
+transform(b.begin() , b.end() , ::toupper); // 转换大写
+
+// 自定义函数 a : 97 ; A : 65;
+string get_lower(string s){
+    string ans;
+    for(auto c : s){
+        if(c >= 'a' && c <= 'z') ans += c;
+        else ans += c + 32;
+    }
+}
+
+
+```
+
+字符串比较  https://www.acwing.com/problem/content/description/4215/
+
+```c++
+#include<bits/stdc++.h>
+using namespace std;
+int main(){
+    string a, b;
+    cin >> a >> b;
+    transform(a.begin() , a.end() , a.begin() ,::tolower);
+    transform(b.begin() , b.end() , b.begin() ,::tolower);    
+    int c = [=]()->int{return (a > b) - (a < b);}(); 
+    cout << c << endl;
+    return 0;
+}
+```
+
+
 
 #### queue
 
@@ -349,7 +388,6 @@ bool comp(int i ,int j){ return (i < j);}; 自定义比较函数传参达到自�
 lower_bound(first , last , val , comp) 
 
 
-    
     
     
 // 返回 最后一个 大于 val 的数的指针位置，可以使用 * 解引用将其取出。
@@ -715,7 +753,7 @@ https://www.acwing.com/problem/content/1954/
 
 | 无序容器           | 功能                                                         |
 | ------------------ | ------------------------------------------------------------ |
-| unordered_map      | 存储键值对 <key, value> 类型的元素，其中各个键值对键的值不允许重复，且该容器中存储的键值对是无序的。 |
+| unordered_map      | 存储键值对 <key, value> 类型的元素，其中各个键值对**键的值不允许重复**，且该容器中存储的键值对是**无序的**。 |
 | unordered_multimap | 和 unordered_map 唯一的区别在于，该容器允许存储多个键相同的键值对。 |
 | unordered_set      | 不再以键值对的形式存储数据，而是直接存储数据元素本身（当然也可以理解为，该容器存储的全部都是键 key 和值 value 相等的键值对，正因为它们相等，因此只存储 value 即可）。另外，该容器存储的元素不能重复，且容器内部存储的元素也是无序的。 |
 | unordered_multiset | 和 unordered_set 唯一的区别在于，该容器允许存储值相同的元素。 |
@@ -1098,18 +1136,29 @@ int main(){
 }
 ```
 
-```c++
-int main(){
-    map<int,string> m;
-    m.insert({10,"houdong"});
-    m[1] = "hu";
-    cout<<m[1];
 
-    map<string,int> m1;
-    m1["hou"] = 1;
-    cout<<m1["hou"];
 
-    return 0;
-}
-```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -506,7 +506,6 @@ eg:  f[i - 1] 这种使用下标从 1 开始就不会出现越界问题。
  f[3][1]   f[3][2]   f[3][3]
  
 所以f[i][j]的左上是f[i - 1][j - 1]，右上是 f[i - 1, j]
-
 ```
 
 ```c++
@@ -569,15 +568,15 @@ int f[N];
 int main()
 {
     scanf("%d", &n);
-    for(int i = 1;i<=n;i++)
-        for(int j = 1;j<=i;j++)
+    for(int i = 1 ; i <= n ; i++)
+        for(int j = 1;j<=i ;j++)
             scanf("%d", &a[i][j]);
     
-    for(int j = 1;j <= n;j++)
+    for(int j = 1 ; j <= n ; j++)
         f[j] = a[n][j];
     
-    for(int i = n - 1;i>=1;i--)
-        for(int j = 1;j<=i;j++)
+    for(int i = n - 1 ; i >= 1 ; i--)
+        for(int j = 1 ; j <= i ; j++)
             f[j] = a[i][j] + max(f[j],f[j+1]);
 
     cout << f[1] << endl;
@@ -680,45 +679,93 @@ https://www.acwing.com/problem/content/898/
 那么前者就可以被淘汰。
 
 也即： 将所以的 上升子序列的 长度 排成单调递增的时候，其对应得最后一个值而必须是 单调递增的
-
 当满足严格的单调递增时，就可以达到 一个优化的状态
-
 ```
 
-![](image/LIS_YH.png)
+![](image/acw_896_1.png)
+
+**贪心思路**：较小的数开头作为子序列 比 较大的数作为开头的子序列 更好。
+
+**贪心步骤**：
+
+- 开一个数组 `q[i]`，存的是以长度为 `i` 的上升子序列末尾元素最小的数
+- `q[]` 一开始是空集，长度为 `0` 
+- 遍历每个数 `x` ，对于当前数 `x` ，先找到一个最大的小于 `x` 的数 `c` 
+    - 情况1：若找不到 `c` ，扩大 `q[]` 的长度并记录当前数 `x`
+    - 情况2：若找到 `c` ，就存在一个不等式 `c < x <= a < b` ，则将 `x` 覆盖在 `a` 的位置。
+
+**时间复杂度**
+
+遍历每个数是 $O(n)$ ，在遍历每个数时，找到最大的小于当前数 `x` 的数 `c` ，最坏情况需要枚举所有数 $O(n)$ 。所以综合就是 $O(n^2)$
 
 ```c++
-// 优化
-#include<iostream>
+#include<bits/stdc++.h>
 using namespace std;
+
 const int N = 100010;
 int n;
 int a[N];
-int s[N]; //  存不同长度的  上升子序列的的结尾的最小值
+int q[N]; //q[i] 存以长度为 i 的上升子序列末尾最小的数。
 
-int main()
-{
-    scanf("%d", &n);
-    for (int i = 0; i < n; i ++ ) scanf("%d", &a[i]);
+int main(){
+    cin >> n;
+    for(int i = 1 ; i <= n ; i++) scanf("%d", &a[i]);
     
     int len = 0;
-    s[0] = -2e9; //  保证 d
-    for(int i = 0 ; i < n ; i++)
-    {
-        int l = 0 , r = len; // 寻找 小于 a[i] 的最大的数
-        while(l < r)
-        {
-            int mid = (l + r + 1) >> 1;
-            if(s[mid] < a[i]) l = mid;
+    for(int i = 1 ; i <= n ; i++){
+        int k = 0;
+        // 找 c
+        while(k < len && q[k] < a[i]) k++;
+        // 找到后 覆盖
+        q[k] = a[i];
+        // 找不到 c, 
+        if(k >= len) len ++;
+    }
+    
+    printf("%d\n", len);
+    return 0;
+}
+```
+
+![](image/acw_896.png)
+
+$a < b$ 是一定。
+
+因为这里 $b$ 是长度为 $6$ 的上升子序列末尾的最小数，如果 $b < a$ ，那么 $b$ 就可以替换 $a$ ，但是它们的长度又不一样，这样就产生了矛盾。所以一定是单调的。
+
+所以根据上述单调性。那么就可以使用 二分 优化。找到一个最大的小于等于当前数的数。
+
+**时间复杂度**： $O(nlogn)$
+
+```c++
+#include<bits/stdc++.h>
+using namespace std;
+
+const int N = 100010;
+int n;
+int a[N];
+int q[N]; //q[i] 存以长度为 i 的上升子序列末尾最小的数。
+
+int main(){
+    cin >> n;
+    for(int i = 1 ; i <= n ; i++) scanf("%d", &a[i]);
+    
+    int len = 0;
+    q[1] = -2e9;
+    for(int i = 1 ; i <= n ; i++) {
+        int l = 0 , r = len;
+        while(l < r) {
+            int mid = l + r + 1 >> 1;
+            if(q[mid] < a[i]) l = mid;
             else r = mid - 1;
         }
-        
-        len = max(len , r + 1); //  找完之后，长度 + 1
-        s[r + 1] = a[i]; //  将 该值作为 该上升子序列的 的最后一个值。
+        //  r + 1 > len 时就会超界，需要增大 len
+        len = max(len , r + 1);
+        //  覆盖
+        q[r + 1] = a[i];
     }
-        
-    printf("%d",len);
     
+    printf("%d\n",len);
     return 0;
 }
 ```

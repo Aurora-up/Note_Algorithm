@@ -824,7 +824,6 @@ https://www.acwing.com/problem/content/899/
 
 ```
 f[i - 1][j - 1] 这种情况是包含在 f[i-1][j] 和 f[i][j-1] 这两种情况之中。
-
 ```
 
 ```c++
